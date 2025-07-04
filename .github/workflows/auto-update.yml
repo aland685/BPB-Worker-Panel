@@ -1,0 +1,41 @@
+name: Auto Update from Original Repo
+
+on:
+  schedule:
+    # 定时每天凌晨 1 点触发更新
+    - cron: '0 1 * * *'
+  workflow_dispatch: # 也可以手动触发
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出当前仓库
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 设置 Git 配置
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 添加原仓库作为 remote
+      - name: Add remote for original repository
+        run: |
+          git remote add upstream https://github.com/bia-pain-bache/BPB-Worker-Panel.git
+          git fetch upstream
+
+      # 拉取原仓库的更新并合并
+      - name: Merge upstream changes
+        run: |
+          git checkout main
+          git merge upstream/main --no-edit
+
+      # 提交合并后的更改
+      - name: Commit and push changes
+        run: |
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
